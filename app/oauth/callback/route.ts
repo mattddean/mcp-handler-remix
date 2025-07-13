@@ -34,7 +34,12 @@ export async function GET(request: NextRequest) {
   const auth0ClientSecret = process.env.AUTH0_CLIENT_SECRET;
   const auth0RedirectUri = process.env.AUTH0_REDIRECT_URI;
 
-  if (!auth0Domain || !auth0ClientId || !auth0ClientSecret || !auth0RedirectUri) {
+  if (
+    !auth0Domain ||
+    !auth0ClientId ||
+    !auth0ClientSecret ||
+    !auth0RedirectUri
+  ) {
     return new NextResponse("Auth0 configuration missing", { status: 500 });
   }
 
@@ -90,7 +95,9 @@ export async function GET(request: NextRequest) {
       expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
       userId: userData.sub,
       auth0Sub: userData.sub,
-      auth0OrgId: userData.org_id || userData["https://claimvoyance.com/org_id"], // Auth0 custom claim
+      auth0OrgId:
+        userData.org_id ||
+        userData[`https://${process.env.BASE_DOMAIN}/org_id`], // Auth0 custom claim
     });
 
     // Redirect back to original client
