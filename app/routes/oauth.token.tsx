@@ -6,7 +6,7 @@ import { verifyCodeChallenge } from "lib/oauth/pkce";
 import { createAccessToken } from "lib/oauth/jwt";
 
 const SERVER_URL =
-  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+  process.env.VITE_PUBLIC_SERVER_URL || "http://localhost:3000";
 
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "POST") {

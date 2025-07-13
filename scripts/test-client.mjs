@@ -1,9 +1,13 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 
-const origin = process.argv[2] || "https://mcp-for-next-js.vercel.app";
+const origin = process.argv[2];
 
 async function main() {
+  if (!origin) {
+    throw new Error("Missing origin argument");
+  }
+
   const transport = new SSEClientTransport(new URL(`${origin}/sse`));
 
   const client = new Client(
