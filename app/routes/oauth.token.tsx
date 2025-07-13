@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { data } from "@remix-run/node";
 import { randomBytes } from "crypto";
 import { storage } from "lib/oauth/storage";
 import { verifyCodeChallenge } from "lib/oauth/pkce";
@@ -23,7 +23,7 @@ export async function action({ request }: ActionFunctionArgs) {
     params = new URLSearchParams(body);
   } else {
     console.error("Unsupported content type", contentType);
-    return json(
+    return data(
       {
         error: "invalid_request",
         error_description: "Unsupported content type",
@@ -38,7 +38,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return handleRefreshTokenGrant(params);
   } else {
     console.error("Unsupported grant type");
-    return json({ error: "unsupported_grant_type" }, { status: 400 });
+    return data({ error: "unsupported_grant_type" }, { status: 400 });
   }
 }
 
@@ -49,7 +49,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
   const codeVerifier = params.get("code_verifier");
   if (!code || !clientId || !redirectUri || !codeVerifier) {
     console.error("Missing required parameters");
-    return json(
+    return data(
       {
         error: "invalid_request",
         error_description: "Missing required parameters",
@@ -62,7 +62,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
   const authCode = await storage.getAuthorizationCode(code);
   if (!authCode) {
     console.error("Invalid authorization code");
-    return json(
+    return data(
       {
         error: "invalid_grant",
         error_description: "Invalid authorization code",
@@ -74,7 +74,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
   // Validate client
   if (authCode.clientId !== clientId) {
     console.error("Code was issued to different client");
-    return json(
+    return data(
       {
         error: "invalid_grant",
         error_description: "Code was issued to different client",
@@ -86,7 +86,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
   // Validate redirect URI
   if (authCode.redirectUri !== redirectUri) {
     console.error("Redirect URI mismatch");
-    return json(
+    return data(
       { error: "invalid_grant", error_description: "Redirect URI mismatch" },
       { status: 400 }
     );
@@ -101,7 +101,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
     )
   ) {
     console.error("Invalid code verifier");
-    return json(
+    return data(
       { error: "invalid_grant", error_description: "Invalid code verifier" },
       { status: 400 }
     );
@@ -133,7 +133,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
     auth0OrgId: authCode.auth0OrgId,
     // TODO: Store encrypted Auth0 refresh token here when implementing refresh flow
   });
-  return json({
+  return data({
     access_token: accessToken,
     token_type: "Bearer",
     expires_in: 3600,
@@ -145,7 +145,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
 async function handleRefreshTokenGrant(params: URLSearchParams) {
   // Implement refresh token logic
   console.error("Refresh token grant not implemented");
-  return json(
+  return data(
     {
       error: "unsupported_grant_type",
       error_description: "Refresh tokens not yet implemented",

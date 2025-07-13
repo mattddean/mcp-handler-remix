@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { data } from "@remix-run/node";
 
 const SERVER_URL =
   process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
@@ -24,7 +24,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     revocation_endpoint: `${SERVER_URL}/oauth/revoke`,
   };
 
-  return json(metadata, {
+  return data(metadata, {
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",

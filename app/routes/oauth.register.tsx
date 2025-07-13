@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { data } from "@remix-run/node";
 import { randomBytes } from "crypto";
 import { storage } from "lib/oauth/storage";
 
@@ -12,7 +12,7 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     body = await request.json();
   } catch {
-    return json(
+    return data(
       { error: "invalid_request", error_description: "Invalid JSON body" },
       { status: 400 }
     );
@@ -26,7 +26,7 @@ export async function action({ request }: ActionFunctionArgs) {
     !Array.isArray(redirect_uris) ||
     redirect_uris.length === 0
   ) {
-    return json(
+    return data(
       {
         error: "invalid_request",
         error_description: "redirect_uris is required",
@@ -36,7 +36,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (!client_name) {
-    return json(
+    return data(
       {
         error: "invalid_request",
         error_description: "client_name is required",
@@ -59,7 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
   await storage.registerClient(client);
 
   // Return client information
-  return json({
+  return data({
     client_id: clientId,
     client_name: client_name,
     redirect_uris: redirect_uris,

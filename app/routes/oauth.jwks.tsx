@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { data } from "@remix-run/node";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // In production, return actual public keys used for JWT signing
@@ -17,5 +17,5 @@ export async function loader({ request }: LoaderFunctionArgs) {
     ],
   };
 
-  return json(jwks);
+  return data(jwks);
 }
