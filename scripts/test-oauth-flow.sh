@@ -3,7 +3,7 @@
 # OAuth Flow Test Script
 # This script demonstrates the complete OAuth flow step by step
 
-SERVER_URL="http://localhost:3001"
+SERVER_URL="http://localhost:3000"
 
 echo "=== MCP OAuth Flow Test ==="
 echo ""
