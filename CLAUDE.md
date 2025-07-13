@@ -5,16 +5,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ### Development
-- `pnpm dev` - Start development server on port 3001
+
+- `pnpm dev` - Start development server on port 3000
 - `pnpm build` - Build the Next.js application for production
 - `pnpm start` - Start the production server
 
 ### Testing OAuth Flow
+
 - `./scripts/test-oauth-flow.sh` - Manual step-by-step OAuth testing guide
 - `node scripts/oauth-client-example.mjs` - Complete OAuth flow example (requires `npm install open`)
 - `node scripts/test-client.mjs <server-url>` - Test MCP client invocations
 
 ### Redis Setup (Required for SSE Transport)
+
 The SSE transport requires Redis running on `redis://localhost:6380`. Ensure Redis is installed and running before using SSE transport.
 
 ## Architecture Overview
@@ -22,19 +25,23 @@ The SSE transport requires Redis running on `redis://localhost:6380`. Ensure Red
 This is a Next.js-based Model Context Protocol (MCP) server with OAuth 2.0 authentication. The project uses Next.js App Router with the following key components:
 
 ### MCP Implementation
+
 - **Main Handler**: `/app/[transport]/route.ts` - Handles MCP requests via different transport protocols (SSE, HTTP)
 - **Auth Wrapper**: Uses `withMcpAuth` for bearer token verification
 - **Example Tool**: Includes a simple "echo" tool that demonstrates MCP tool implementation
 - **Transport Support**: Dynamic routing supports both SSE (Server-Sent Events) and HTTP transports
 
 ### OAuth 2.0 Flow
+
 The server implements a complete OAuth authorization flow:
 
 1. **Discovery Endpoints**:
+
    - `/.well-known/oauth-protected-resource` - MCP resource metadata
    - `/.well-known/oauth-authorization-server` - OAuth server metadata
 
 2. **OAuth Endpoints**:
+
    - `/oauth/register` - Dynamic client registration
    - `/oauth/authorize` - Authorization endpoint (PKCE mandatory)
    - `/oauth/token` - Token exchange endpoint
@@ -47,12 +54,14 @@ The server implements a complete OAuth authorization flow:
    - Backward compatibility with test tokens (`__TEST_VALUE__*`)
 
 ### Key Technical Details
+
 - **Storage**: In-memory storage for development (see `/app/oauth/lib/storage.ts`)
 - **JWT Implementation**: Simple JWT parsing in `/app/oauth/lib/jwt.ts`
 - **Validation**: Uses Zod for schema validation throughout
 - **TypeScript**: Strict mode enabled with path alias `@/*` → `./*`
 
 ### Development Notes
+
 - The project uses `mcp-handler` (not `@vercel/mcp-adapter` as mentioned in README)
 - No linting or formatting configuration exists yet
 - No test framework is configured

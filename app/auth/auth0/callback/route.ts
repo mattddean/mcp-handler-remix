@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
-import { storage } from "../lib/storage";
+import { storage } from "../../../oauth/lib/storage";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;

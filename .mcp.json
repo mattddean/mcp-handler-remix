@@ -2,7 +2,7 @@
   "mcpServers": {
     "with-next-local-3": {
       "type": "sse",
-      "url": "http://localhost:3001/sse"
+      "url": "http://localhost:3000/sse"
     }
   }
 }
