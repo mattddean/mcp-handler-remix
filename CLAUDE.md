@@ -47,7 +47,11 @@ The server implements a complete OAuth authorization flow:
    - `/oauth/token` - Token exchange endpoint
    - `/oauth/jwks` - JSON Web Key Set (placeholder)
 
-3. **Security Features**:
+3. **Auth0 Integration**:
+
+   - `/auth/auth0/callback` - Auth0 OAuth callback handler (separate from internal OAuth flow)
+
+4. **Security Features**:
    - PKCE (S256) required for all authorization requests
    - JWT-based access tokens (1-hour expiry)
    - Scope-based access control: `read:stuff`, `write:stuff`
@@ -66,5 +70,14 @@ The server implements a complete OAuth authorization flow:
 - No linting or formatting configuration exists yet
 - No test framework is configured
 - Package manager: pnpm v8.15.7
+
+### Route Organization
+
+The project separates OAuth flows into distinct paths:
+
+- `/oauth/*` - Internal OAuth 2.0 server implementation (authorization, token exchange, registration)
+- `/auth/auth0/*` - Auth0 integration endpoints (external OAuth provider callbacks)
+
+This separation allows the server to act as both an OAuth authorization server for MCP clients and integrate with external OAuth providers like Auth0.
 
 When implementing new MCP tools or modifying OAuth flows, follow the existing patterns in the codebase and ensure proper token verification for protected endpoints.

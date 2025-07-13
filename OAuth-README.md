@@ -24,6 +24,12 @@ This project now includes a complete OAuth 2.0 authorization flow for MCP (Model
 - `/oauth/token` - Token exchange endpoint
 - `/oauth/jwks` - JSON Web Key Set (placeholder)
 
+### Auth0 Integration
+
+- `/auth/auth0/callback` - Auth0 OAuth callback handler
+
+**Note**: When configuring Auth0 applications, use `http://localhost:3000/auth/auth0/callback` as the callback URL for development. This endpoint is separate from the internal OAuth flow and handles Auth0-specific authentication callbacks.
+
 ## Testing the OAuth Flow
 
 ### Option 1: Manual Testing
@@ -56,6 +62,15 @@ The `scripts/oauth-client-example.mjs` demonstrates a complete OAuth flow (requi
 - **JWT Tokens**: Simple JWT implementation (use proper signing in production)
 - **Token Expiry**: Access tokens expire after 1 hour
 - **Scopes**: Supports `read:stuff` and `write:stuff` scopes
+
+### Route Architecture
+
+The server implements two distinct OAuth flows:
+
+- **Internal OAuth Server** (`/oauth/*`): Acts as an OAuth 2.0 authorization server for MCP clients
+- **Auth0 Integration** (`/auth/auth0/*`): Handles callbacks from Auth0 as an external OAuth provider
+
+This dual architecture allows the server to both provide OAuth services to MCP clients and integrate with external identity providers.
 
 ## Security Considerations
 
