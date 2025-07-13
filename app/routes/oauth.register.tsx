@@ -1,13 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { ActionFunctionArgs } from "@remix-run/node";
+import { data } from "@remix-run/node";
 import { randomBytes } from "crypto";
-import { storage } from "../lib/storage";
+import { storage } from "lib/oauth/storage";
 
-export async function POST(request: NextRequest) {
+export async function action({ request }: ActionFunctionArgs) {
+  if (request.method !== "POST") {
+    throw new Response("Method not allowed", { status: 405 });
+  }
+
   let body;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
+    return data(
       { error: "invalid_request", error_description: "Invalid JSON body" },
       { status: 400 }
     );
@@ -21,7 +26,7 @@ export async function POST(request: NextRequest) {
     !Array.isArray(redirect_uris) ||
     redirect_uris.length === 0
   ) {
-    return NextResponse.json(
+    return data(
       {
         error: "invalid_request",
         error_description: "redirect_uris is required",
@@ -31,7 +36,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!client_name) {
-    return NextResponse.json(
+    return data(
       {
         error: "invalid_request",
         error_description: "client_name is required",
@@ -54,7 +59,7 @@ export async function POST(request: NextRequest) {
   await storage.registerClient(client);
 
   // Return client information
-  return NextResponse.json({
+  return data({
     client_id: clientId,
     client_name: client_name,
     redirect_uris: redirect_uris,
