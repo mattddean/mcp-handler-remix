@@ -8,6 +8,9 @@
     "start": "next start"
   },
   "dependencies": {
+    "@remix-run/node": "2.15.3",
+    "@remix-run/react": "2.15.3",
+    "@remix-run/serve": "2.15.3",
     "@modelcontextprotocol/sdk": "^1.15.1",
     "compression": "1.7.5",
     "mcp-handler": "1.0.0",
@@ -21,10 +24,17 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@remix-run/dev": "2.15.2",
+    "@remix-run/fs-routes": "2.15.2",
+    "@remix-run/route-config": "2.15.2",
     "@types/compression": "1.7.5",
     "@types/node": "^20",
     "@types/react": "^19",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "6.0.6",
+    "vite-env-only": "3.0.3",
+    "vite-plugin-devtools-json": "0.1.0",
+    "vite-tsconfig-paths": "5.1.4"
   },
   "packageManager": "pnpm@8.15.7+sha512.c85cd21b6da10332156b1ca2aa79c0a61ee7ad2eb0453b88ab299289e9e8ca93e6091232b25c07cbf61f6df77128d9c849e5c9ac6e44854dbd211c49f3a67adc"
 }
