@@ -11,6 +11,8 @@ interface JWTPayload {
   iat: number;
   scope: string;
   client_id: string;
+  auth0_sub?: string;
+  org_id?: string;
 }
 
 // For demo purposes, we'll use a simple base64 encoding

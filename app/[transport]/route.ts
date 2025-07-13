@@ -71,7 +71,8 @@ const verifyToken = async (
     scopes: tokenData.scope.split(" "),
     clientId: tokenData.clientId,
     extra: {
-      userId: tokenData.userId,
+      userId: tokenData.auth0Sub || tokenData.userId,
+      orgId: tokenData.auth0OrgId,
     },
   };
 };

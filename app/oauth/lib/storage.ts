@@ -1,10 +1,11 @@
-import { AuthorizationCode, AccessToken, Client } from "./types";
+import { AuthorizationCode, AccessToken, Client, Auth0Session } from "./types";
 
 // In-memory storage for demo purposes
 // In production, use Redis or a database
 const authorizationCodes = new Map<string, AuthorizationCode>();
 const accessTokens = new Map<string, AccessToken>();
 const clients = new Map<string, Client>();
+const auth0Sessions = new Map<string, Auth0Session>();
 
 // Initialize with a demo client
 clients.set("demo-client", {
@@ -65,5 +66,27 @@ export const storage = {
   registerClient: async (client: Client) => {
     clients.set(client.clientId, client);
     console.log("clients", clients);
+  },
+
+  // Auth0 sessions
+  saveAuth0Session: async (session: Auth0Session) => {
+    auth0Sessions.set(session.sessionId, session);
+  },
+
+  getAuth0Session: async (sessionId: string): Promise<Auth0Session | null> => {
+    const session = auth0Sessions.get(sessionId);
+    if (!session) return null;
+
+    // Check if expired (sessions expire after 10 minutes)
+    if (Date.now() > session.expiresAt) {
+      auth0Sessions.delete(sessionId);
+      return null;
+    }
+
+    return session;
+  },
+
+  deleteAuth0Session: async (sessionId: string) => {
+    auth0Sessions.delete(sessionId);
   },
 };
