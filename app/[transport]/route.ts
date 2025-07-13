@@ -79,7 +79,8 @@ const verifyToken = async (
 // Make authorization required
 const authHandler = withMcpAuth(handler, verifyToken, {
   required: true, // Make auth required for all requests
-  requiredScopes: ["read:stuff"], // Optional: Require specific scopes
+  // TODO: require certain scopes to use our MCP server?
+  // requiredScopes: ["read:stuff"], // Optional: Require specific scopes
   resourceMetadataPath: "/.well-known/oauth-protected-resource", // Optional: Custom metadata path
 });
 
