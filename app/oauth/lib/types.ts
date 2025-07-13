@@ -7,6 +7,8 @@ export interface AuthorizationCode {
   scope: string;
   expiresAt: number;
   userId?: string;
+  auth0Sub?: string;
+  auth0OrgId?: string;
 }
 
 export interface AccessToken {
@@ -16,6 +18,9 @@ export interface AccessToken {
   expiresAt: number;
   userId?: string;
   refreshToken?: string;
+  auth0Sub?: string;
+  auth0OrgId?: string;
+  auth0RefreshToken?: string;
 }
 
 export interface Client {
@@ -24,4 +29,15 @@ export interface Client {
   redirectUris: string[];
   name: string;
   scope: string;
+}
+
+export interface Auth0Session {
+  sessionId: string;
+  clientId: string;
+  redirectUri: string;
+  codeChallenge: string;
+  codeChallengeMethod: string;
+  scope: string;
+  state: string;
+  expiresAt: number;
 }

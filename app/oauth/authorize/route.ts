@@ -45,32 +45,39 @@ export async function GET(request: NextRequest) {
     return new NextResponse("Invalid redirect_uri", { status: 400 });
   }
 
-  // In a real implementation, you would show a consent screen here
-  // For demo purposes, we'll auto-approve
+  // Generate session ID for Auth0 flow
+  const sessionId = randomBytes(32).toString("base64url");
 
-  // Generate authorization code
-  const code = randomBytes(32).toString("base64url");
-
-  // Store authorization code
-  await storage.saveAuthorizationCode({
-    code,
+  // Store OAuth request details for retrieval after Auth0 callback
+  await storage.saveAuth0Session({
+    sessionId,
     clientId,
     redirectUri,
     codeChallenge,
     codeChallengeMethod,
     scope,
+    state: state || "",
     expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
-    userId: "demo-user", // In real app, get from session
   });
 
-  // Redirect back to client
-  const redirectUrl = new URL(redirectUri);
-  redirectUrl.searchParams.set("code", code);
-  if (state) {
-    redirectUrl.searchParams.set("state", state);
+  // Redirect to Auth0 for authentication
+  const auth0Domain = process.env.AUTH0_DOMAIN;
+  const auth0ClientId = process.env.AUTH0_CLIENT_ID;
+  const auth0RedirectUri = process.env.AUTH0_REDIRECT_URI;
+
+  if (!auth0Domain || !auth0ClientId || !auth0RedirectUri) {
+    return new NextResponse("Auth0 configuration missing", { status: 500 });
   }
 
-  return NextResponse.redirect(redirectUrl);
+  const auth0Url = new URL(`https://${auth0Domain}/authorize`);
+  auth0Url.searchParams.set("client_id", auth0ClientId);
+  auth0Url.searchParams.set("redirect_uri", auth0RedirectUri);
+  auth0Url.searchParams.set("response_type", "code");
+  // TODO: necessary?
+  // auth0Url.searchParams.set("scope", "openid profile email offline_access");
+  auth0Url.searchParams.set("state", sessionId);
+
+  return NextResponse.redirect(auth0Url);
 }
 
 export async function POST(request: NextRequest) {

@@ -106,18 +106,20 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
   }
   // Delete used authorization code
   await storage.deleteAuthorizationCode(code);
-  // Create access token
+  // Create access token with Auth0 context
   const accessToken = createAccessToken({
     iss: SERVER_URL,
-    sub: authCode.userId || "demo-user",
+    sub: authCode.auth0Sub || authCode.userId || "unknown-user",
     aud: SERVER_URL,
     exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour
     iat: Math.floor(Date.now() / 1000),
     scope: authCode.scope,
     client_id: clientId,
+    auth0_sub: authCode.auth0Sub,
+    org_id: authCode.auth0OrgId,
   });
   const refreshToken = randomBytes(32).toString("base64url");
-  // Store access token
+  // Store access token with Auth0 context
   await storage.saveAccessToken({
     token: accessToken,
     clientId,
@@ -125,6 +127,9 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
     expiresAt: Date.now() + 3600 * 1000, // 1 hour
     userId: authCode.userId,
     refreshToken,
+    auth0Sub: authCode.auth0Sub,
+    auth0OrgId: authCode.auth0OrgId,
+    // TODO: Store encrypted Auth0 refresh token here when implementing refresh flow
   });
   return NextResponse.json({
     access_token: accessToken,
