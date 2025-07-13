@@ -1,5 +1,5 @@
 {
-  "name": "remix-mcp-server",
+  "name": "mcp-handler-remix",
   "version": "0.1.0",
   "private": true,
   "type": "module",

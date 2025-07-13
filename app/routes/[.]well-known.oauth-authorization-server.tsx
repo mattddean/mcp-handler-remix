@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { data } from "@remix-run/node";
 
 const SERVER_URL =
-  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+  process.env.VITE_PUBLIC_SERVER_URL || "http://localhost:3000";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const metadata = {

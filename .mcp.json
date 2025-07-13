@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "with-next-local-3": {
+    "mcp-handler-remix": {
       "type": "sse",
       "url": "http://localhost:3000/sse"
     }
