@@ -39,32 +39,32 @@ const verifyToken = async (
   req: Request,
   bearerToken?: string
 ): Promise<AuthInfo | undefined> => {
-  console.log("bearerToken", bearerToken);
-
-  if (!bearerToken) return undefined;
-
-  // Check if it's still using test token for backwards compatibility
-  if (bearerToken.startsWith("__TEST_VALUE__")) {
-    return {
-      token: bearerToken,
-      scopes: ["read:stuff"],
-      clientId: "test-client",
-      extra: {
-        userId: "test-user",
-      },
-    };
+  if (!bearerToken) {
+    console.error("No bearer token provided");
+    return undefined;
   }
 
   // Verify JWT token
   const tokenData = await storage.getAccessToken(bearerToken);
-  if (!tokenData) return undefined;
+  if (!tokenData) {
+    console.error("Token not found in storage");
+    return undefined;
+  }
 
   // Parse JWT to get claims
   const payload = parseAccessToken(bearerToken);
-  if (!payload) return undefined;
+  if (!payload) {
+    console.error("Failed to parse JWT");
+    return undefined;
+  }
 
   // Check token expiration
-  if (payload.exp * 1000 < Date.now()) return undefined;
+  const now = Date.now();
+  const expiry = payload.exp * 1000;
+  if (expiry < now) {
+    console.error("Token expired", { expiry, now });
+    return undefined;
+  }
 
   return {
     token: bearerToken,
@@ -79,7 +79,8 @@ const verifyToken = async (
 // Make authorization required
 const authHandler = withMcpAuth(handler, verifyToken, {
   required: true, // Make auth required for all requests
-  requiredScopes: ["read:stuff"], // Optional: Require specific scopes
+  // TODO: require certain scopes to use our MCP server?
+  // requiredScopes: ["read:stuff"], // Optional: Require specific scopes
   resourceMetadataPath: "/.well-known/oauth-protected-resource", // Optional: Custom metadata path
 });
 

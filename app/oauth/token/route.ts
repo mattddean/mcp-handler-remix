@@ -4,11 +4,11 @@ import { storage } from "../lib/storage";
 import { verifyCodeChallenge } from "../lib/pkce";
 import { createAccessToken } from "../lib/jwt";
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3001";
+const SERVER_URL =
+  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3001";
 
 export async function POST(request: NextRequest) {
   const contentType = request.headers.get("content-type");
-  
   let params: URLSearchParams;
   if (contentType?.includes("application/x-www-form-urlencoded")) {
     const body = await request.text();
@@ -17,19 +17,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     params = new URLSearchParams(body);
   } else {
+    console.error("Unsupported content type", contentType);
     return NextResponse.json(
-      { error: "invalid_request", error_description: "Unsupported content type" },
+      {
+        error: "invalid_request",
+        error_description: "Unsupported content type",
+      },
       { status: 400 }
     );
   }
-  
   const grantType = params.get("grant_type");
-  
   if (grantType === "authorization_code") {
     return handleAuthorizationCodeGrant(params);
   } else if (grantType === "refresh_token") {
     return handleRefreshTokenGrant(params);
   } else {
+    console.error("Unsupported grant type");
     return NextResponse.json(
       { error: "unsupported_grant_type" },
       { status: 400 }
@@ -42,50 +45,67 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
   const clientId = params.get("client_id");
   const redirectUri = params.get("redirect_uri");
   const codeVerifier = params.get("code_verifier");
-  
   if (!code || !clientId || !redirectUri || !codeVerifier) {
+    console.error("Missing required parameters");
     return NextResponse.json(
-      { error: "invalid_request", error_description: "Missing required parameters" },
+      {
+        error: "invalid_request",
+        error_description: "Missing required parameters",
+      },
       { status: 400 }
     );
   }
-  
+
   // Get and validate authorization code
   const authCode = await storage.getAuthorizationCode(code);
   if (!authCode) {
+    console.error("Invalid authorization code");
     return NextResponse.json(
-      { error: "invalid_grant", error_description: "Invalid authorization code" },
+      {
+        error: "invalid_grant",
+        error_description: "Invalid authorization code",
+      },
       { status: 400 }
     );
   }
-  
+
   // Validate client
   if (authCode.clientId !== clientId) {
+    console.error("Code was issued to different client");
     return NextResponse.json(
-      { error: "invalid_grant", error_description: "Code was issued to different client" },
+      {
+        error: "invalid_grant",
+        error_description: "Code was issued to different client",
+      },
       { status: 400 }
     );
   }
-  
+
   // Validate redirect URI
   if (authCode.redirectUri !== redirectUri) {
+    console.error("Redirect URI mismatch");
     return NextResponse.json(
       { error: "invalid_grant", error_description: "Redirect URI mismatch" },
       { status: 400 }
     );
   }
-  
+
   // Verify PKCE
-  if (!verifyCodeChallenge(codeVerifier, authCode.codeChallenge, authCode.codeChallengeMethod)) {
+  if (
+    !verifyCodeChallenge(
+      codeVerifier,
+      authCode.codeChallenge,
+      authCode.codeChallengeMethod
+    )
+  ) {
+    console.error("Invalid code verifier");
     return NextResponse.json(
       { error: "invalid_grant", error_description: "Invalid code verifier" },
       { status: 400 }
     );
   }
-  
   // Delete used authorization code
   await storage.deleteAuthorizationCode(code);
-  
   // Create access token
   const accessToken = createAccessToken({
     iss: SERVER_URL,
@@ -96,9 +116,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
     scope: authCode.scope,
     client_id: clientId,
   });
-  
   const refreshToken = randomBytes(32).toString("base64url");
-  
   // Store access token
   await storage.saveAccessToken({
     token: accessToken,
@@ -108,7 +126,6 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
     userId: authCode.userId,
     refreshToken,
   });
-  
   return NextResponse.json({
     access_token: accessToken,
     token_type: "Bearer",
@@ -120,8 +137,12 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
 
 async function handleRefreshTokenGrant(params: URLSearchParams) {
   // Implement refresh token logic
+  console.error("Refresh token grant not implemented");
   return NextResponse.json(
-    { error: "unsupported_grant_type", error_description: "Refresh tokens not yet implemented" },
+    {
+      error: "unsupported_grant_type",
+      error_description: "Refresh tokens not yet implemented",
+    },
     { status: 400 }
   );
 }
