@@ -3,7 +3,10 @@ import type { MetaFunction } from "@remix-run/node";
 export const meta: MetaFunction = () => {
   return [
     { title: "MCP for Remix" },
-    { name: "description", content: "Model Context Protocol server with OAuth 2.0" },
+    {
+      name: "description",
+      content: "Model Context Protocol server with OAuth 2.0",
+    },
   ];
 };
 

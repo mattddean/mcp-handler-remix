@@ -80,7 +80,7 @@ export const app = createExpressApp({
     app.use(compression());
     app.set("trust proxy", true); // can rely on x-forwarded-for
     app.disable("x-powered-by");
-    
+
     // Add request logging middleware
     app.use((req, res, next) => {
       console.log(`==> ${req.method} ${req.url}`);
