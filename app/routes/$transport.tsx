@@ -1,8 +1,9 @@
 import { createMcpHandler, withMcpAuth } from "mcp-handler";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { z } from "zod";
-import { storage } from "../oauth/lib/storage";
-import { parseAccessToken } from "../oauth/lib/jwt";
+import { storage } from "lib/oauth/storage";
+import { parseAccessToken } from "lib/oauth/jwt";
 
 const handler = createMcpHandler(
   async (server) => {
@@ -85,4 +86,10 @@ const authHandler = withMcpAuth(handler, verifyToken, {
   resourceMetadataPath: "/.well-known/oauth-protected-resource", // Optional: Custom metadata path
 });
 
-export { authHandler as GET, authHandler as POST, authHandler as DELETE };
+export async function loader({ request }: LoaderFunctionArgs) {
+  return authHandler(request);
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  return authHandler(request);
+}

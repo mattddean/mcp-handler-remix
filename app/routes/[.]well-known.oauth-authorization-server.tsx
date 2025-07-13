@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
 
 const SERVER_URL =
   process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
 
-export async function GET() {
+export async function loader({ request }: LoaderFunctionArgs) {
   const metadata = {
     issuer: SERVER_URL,
     authorization_endpoint: `${SERVER_URL}/oauth/authorize`,
@@ -23,7 +24,7 @@ export async function GET() {
     revocation_endpoint: `${SERVER_URL}/oauth/revoke`,
   };
 
-  return NextResponse.json(metadata, {
+  return json(metadata, {
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
@@ -32,13 +33,17 @@ export async function GET() {
   });
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
+export async function action({ request }: ActionFunctionArgs) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    });
+  }
+
+  throw new Response("Method not allowed", { status: 405 });
 }

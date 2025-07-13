@@ -1,13 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { ActionFunctionArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { randomBytes } from "crypto";
-import { storage } from "../lib/storage";
-import { verifyCodeChallenge } from "../lib/pkce";
-import { createAccessToken } from "../lib/jwt";
+import { storage } from "lib/oauth/storage";
+import { verifyCodeChallenge } from "lib/oauth/pkce";
+import { createAccessToken } from "lib/oauth/jwt";
 
 const SERVER_URL =
   process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
 
-export async function POST(request: NextRequest) {
+export async function action({ request }: ActionFunctionArgs) {
+  if (request.method !== "POST") {
+    throw new Response("Method not allowed", { status: 405 });
+  }
+
   const contentType = request.headers.get("content-type");
   let params: URLSearchParams;
   if (contentType?.includes("application/x-www-form-urlencoded")) {
@@ -18,7 +23,7 @@ export async function POST(request: NextRequest) {
     params = new URLSearchParams(body);
   } else {
     console.error("Unsupported content type", contentType);
-    return NextResponse.json(
+    return json(
       {
         error: "invalid_request",
         error_description: "Unsupported content type",
@@ -33,10 +38,7 @@ export async function POST(request: NextRequest) {
     return handleRefreshTokenGrant(params);
   } else {
     console.error("Unsupported grant type");
-    return NextResponse.json(
-      { error: "unsupported_grant_type" },
-      { status: 400 }
-    );
+    return json({ error: "unsupported_grant_type" }, { status: 400 });
   }
 }
 
@@ -47,7 +49,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
   const codeVerifier = params.get("code_verifier");
   if (!code || !clientId || !redirectUri || !codeVerifier) {
     console.error("Missing required parameters");
-    return NextResponse.json(
+    return json(
       {
         error: "invalid_request",
         error_description: "Missing required parameters",
@@ -60,7 +62,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
   const authCode = await storage.getAuthorizationCode(code);
   if (!authCode) {
     console.error("Invalid authorization code");
-    return NextResponse.json(
+    return json(
       {
         error: "invalid_grant",
         error_description: "Invalid authorization code",
@@ -72,7 +74,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
   // Validate client
   if (authCode.clientId !== clientId) {
     console.error("Code was issued to different client");
-    return NextResponse.json(
+    return json(
       {
         error: "invalid_grant",
         error_description: "Code was issued to different client",
@@ -84,7 +86,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
   // Validate redirect URI
   if (authCode.redirectUri !== redirectUri) {
     console.error("Redirect URI mismatch");
-    return NextResponse.json(
+    return json(
       { error: "invalid_grant", error_description: "Redirect URI mismatch" },
       { status: 400 }
     );
@@ -99,7 +101,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
     )
   ) {
     console.error("Invalid code verifier");
-    return NextResponse.json(
+    return json(
       { error: "invalid_grant", error_description: "Invalid code verifier" },
       { status: 400 }
     );
@@ -131,7 +133,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
     auth0OrgId: authCode.auth0OrgId,
     // TODO: Store encrypted Auth0 refresh token here when implementing refresh flow
   });
-  return NextResponse.json({
+  return json({
     access_token: accessToken,
     token_type: "Bearer",
     expires_in: 3600,
@@ -143,7 +145,7 @@ async function handleAuthorizationCodeGrant(params: URLSearchParams) {
 async function handleRefreshTokenGrant(params: URLSearchParams) {
   // Implement refresh token logic
   console.error("Refresh token grant not implemented");
-  return NextResponse.json(
+  return json(
     {
       error: "unsupported_grant_type",
       error_description: "Refresh tokens not yet implemented",

@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Development
 
-- `pnpm dev` - Start development server on port 3000
-- `pnpm build` - Build the Next.js application for production
+- `pnpm dev` - Start Remix development server on port 3000
+- `pnpm build` - Build the Remix application for production
 - `pnpm start` - Start the production server
 
 ### Testing OAuth Flow
@@ -22,11 +22,11 @@ The SSE transport requires Redis running on `redis://localhost:6380`. Ensure Red
 
 ## Architecture Overview
 
-This is a Next.js-based Model Context Protocol (MCP) server with OAuth 2.0 authentication. The project uses Next.js App Router with the following key components:
+This is a Remix v2-based Model Context Protocol (MCP) server with OAuth 2.0 authentication. The project uses Remix with Vite and the following key components:
 
 ### MCP Implementation
 
-- **Main Handler**: `/app/[transport]/route.ts` - Handles MCP requests via different transport protocols (SSE, HTTP)
+- **Main Handler**: `/app/routes/$transport.tsx` - Handles MCP requests via different transport protocols (SSE, HTTP)
 - **Auth Wrapper**: Uses `withMcpAuth` for bearer token verification
 - **Example Tool**: Includes a simple "echo" tool that demonstrates MCP tool implementation
 - **Transport Support**: Dynamic routing supports both SSE (Server-Sent Events) and HTTP transports
@@ -59,24 +59,29 @@ The server implements a complete OAuth authorization flow:
 
 ### Key Technical Details
 
-- **Storage**: In-memory storage for development (see `/app/oauth/lib/storage.ts`)
-- **JWT Implementation**: Simple JWT parsing in `/app/oauth/lib/jwt.ts`
+- **Storage**: In-memory storage for development (see `/app/lib/oauth/storage.ts`)
+- **JWT Implementation**: Simple JWT parsing in `/app/lib/oauth/jwt.ts`
 - **Validation**: Uses Zod for schema validation throughout
-- **TypeScript**: Strict mode enabled with path alias `@/*` → `./*`
+- **TypeScript**: Strict mode enabled with path alias `~/*` → `./app/*`
+- **Build Tool**: Vite with Remix plugin for fast development and building
 
 ### Development Notes
 
-- The project uses `mcp-handler` (not `@vercel/mcp-adapter` as mentioned in README)
+- The project uses `mcp-handler` for MCP protocol implementation
+- Express.js middleware for request handling and compression
+- Remix v2 with file-based routing and resource routes
 - No linting or formatting configuration exists yet
 - No test framework is configured
 - Package manager: pnpm v8.15.7
 
 ### Route Organization
 
-The project separates OAuth flows into distinct paths:
+Remix file-based routing structure:
 
-- `/oauth/*` - Internal OAuth 2.0 server implementation (authorization, token exchange, registration)
-- `/auth/auth0/*` - Auth0 integration endpoints (external OAuth provider callbacks)
+- `/app/routes/$transport.tsx` - MCP transport handler (dynamic route)
+- `/app/routes/oauth.*.tsx` - Internal OAuth 2.0 server implementation
+- `/app/routes/auth.auth0.callback.tsx` - Auth0 integration endpoint
+- `/app/routes/[.]well-known.*.tsx` - Discovery endpoints (escaped dot notation)
 
 This separation allows the server to act as both an OAuth authorization server for MCP clients and integrate with external OAuth providers like Auth0.
 

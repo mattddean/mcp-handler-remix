@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
 import { randomBytes } from "crypto";
-import { storage } from "../lib/storage";
+import { storage } from "lib/oauth/storage";
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
+export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const searchParams = url.searchParams;
 
   // Extract OAuth parameters
   const clientId = searchParams.get("client_id");
@@ -16,20 +18,20 @@ export async function GET(request: NextRequest) {
 
   // Validate required parameters
   if (!clientId || !redirectUri || !responseType) {
-    return new NextResponse("Missing required parameters", { status: 400 });
+    throw new Response("Missing required parameters", { status: 400 });
   }
 
   if (responseType !== "code") {
-    return new NextResponse("Unsupported response_type", { status: 400 });
+    throw new Response("Unsupported response_type", { status: 400 });
   }
 
   // PKCE is required
   if (!codeChallenge || !codeChallengeMethod) {
-    return new NextResponse("PKCE parameters required", { status: 400 });
+    throw new Response("PKCE parameters required", { status: 400 });
   }
 
   if (codeChallengeMethod !== "S256") {
-    return new NextResponse("Only S256 code challenge method supported", {
+    throw new Response("Only S256 code challenge method supported", {
       status: 400,
     });
   }
@@ -37,12 +39,12 @@ export async function GET(request: NextRequest) {
   // Validate client
   const client = await storage.getClient(clientId);
   if (!client) {
-    return new NextResponse("Invalid client_id", { status: 400 });
+    throw new Response("Invalid client_id", { status: 400 });
   }
 
   // Validate redirect URI
   if (!client.redirectUris.includes(redirectUri)) {
-    return new NextResponse("Invalid redirect_uri", { status: 400 });
+    throw new Response("Invalid redirect_uri", { status: 400 });
   }
 
   // Generate session ID for Auth0 flow
@@ -66,7 +68,7 @@ export async function GET(request: NextRequest) {
   const auth0RedirectUri = process.env.AUTH0_REDIRECT_URI;
 
   if (!auth0Domain || !auth0ClientId || !auth0RedirectUri) {
-    return new NextResponse("Auth0 configuration missing", { status: 500 });
+    throw new Response("Auth0 configuration missing", { status: 500 });
   }
 
   const auth0Url = new URL(`https://${auth0Domain}/authorize`);
@@ -77,10 +79,10 @@ export async function GET(request: NextRequest) {
   // auth0Url.searchParams.set("scope", "openid profile email offline_access");
   auth0Url.searchParams.set("state", sessionId);
 
-  return NextResponse.redirect(auth0Url);
+  return redirect(auth0Url.toString());
 }
 
-export async function POST(request: NextRequest) {
+export async function action({ request }: ActionFunctionArgs) {
   // Handle consent form submission in a real implementation
-  return GET(request);
+  return loader({ request, params: {}, context: {} });
 }

@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { LoaderFunctionArgs } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
 import { randomBytes } from "crypto";
-import { storage } from "../../../oauth/lib/storage";
+import { storage } from "lib/oauth/storage";
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
+export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const searchParams = url.searchParams;
 
   // Extract Auth0 callback parameters
   const auth0Code = searchParams.get("code");
@@ -12,17 +14,17 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error("Auth0 error:", error);
-    return new NextResponse(`Auth0 error: ${error}`, { status: 400 });
+    throw new Response(`Auth0 error: ${error}`, { status: 400 });
   }
 
   if (!auth0Code || !sessionId) {
-    return new NextResponse("Missing code or state parameter", { status: 400 });
+    throw new Response("Missing code or state parameter", { status: 400 });
   }
 
   // Retrieve the original OAuth request
   const auth0Session = await storage.getAuth0Session(sessionId);
   if (!auth0Session) {
-    return new NextResponse("Invalid or expired session", { status: 400 });
+    throw new Response("Invalid or expired session", { status: 400 });
   }
 
   // Delete the session as it's one-time use
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest) {
     !auth0ClientSecret ||
     !auth0RedirectUri
   ) {
-    return new NextResponse("Auth0 configuration missing", { status: 500 });
+    throw new Response("Auth0 configuration missing", { status: 500 });
   }
 
   try {
@@ -62,7 +64,7 @@ export async function GET(request: NextRequest) {
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error("Auth0 token exchange failed:", errorText);
-      return new NextResponse("Auth0 token exchange failed", { status: 400 });
+      throw new Response("Auth0 token exchange failed", { status: 400 });
     }
 
     const tokenData = await tokenResponse.json();
@@ -76,7 +78,7 @@ export async function GET(request: NextRequest) {
 
     if (!userResponse.ok) {
       console.error("Failed to get user info from Auth0");
-      return new NextResponse("Failed to get user info", { status: 400 });
+      throw new Response("Failed to get user info", { status: 400 });
     }
 
     const userData = await userResponse.json();
@@ -107,9 +109,9 @@ export async function GET(request: NextRequest) {
       redirectUrl.searchParams.set("state", auth0Session.state);
     }
 
-    return NextResponse.redirect(redirectUrl);
+    return redirect(redirectUrl.toString());
   } catch (error) {
     console.error("Error in Auth0 callback:", error);
-    return new NextResponse("Internal server error", { status: 500 });
+    throw new Response("Internal server error", { status: 500 });
   }
 }
