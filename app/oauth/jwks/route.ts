@@ -15,6 +15,6 @@ export async function GET() {
       },
     ],
   };
-  
+
   return NextResponse.json(jwks);
 }

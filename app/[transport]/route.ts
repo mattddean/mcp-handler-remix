@@ -46,14 +46,25 @@ const verifyToken = async (
 
   // Verify JWT token
   const tokenData = await storage.getAccessToken(bearerToken);
-  if (!tokenData) return undefined;
+  if (!tokenData) {
+    console.error("Token not found in storage");
+    return undefined;
+  }
 
   // Parse JWT to get claims
   const payload = parseAccessToken(bearerToken);
-  if (!payload) return undefined;
+  if (!payload) {
+    console.error("Failed to parse JWT");
+    return undefined;
+  }
 
   // Check token expiration
-  if (payload.exp * 1000 < Date.now()) return undefined;
+  const now = Date.now();
+  const expiry = payload.exp * 1000;
+  if (expiry < now) {
+    console.error("Token expired", { expiry, now });
+    return undefined;
+  }
 
   return {
     token: bearerToken,

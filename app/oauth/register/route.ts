@@ -12,27 +12,37 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
-  
+
   const { redirect_uris, client_name, scope } = body;
-  
+
   // Validate required fields
-  if (!redirect_uris || !Array.isArray(redirect_uris) || redirect_uris.length === 0) {
+  if (
+    !redirect_uris ||
+    !Array.isArray(redirect_uris) ||
+    redirect_uris.length === 0
+  ) {
     return NextResponse.json(
-      { error: "invalid_request", error_description: "redirect_uris is required" },
+      {
+        error: "invalid_request",
+        error_description: "redirect_uris is required",
+      },
       { status: 400 }
     );
   }
-  
+
   if (!client_name) {
     return NextResponse.json(
-      { error: "invalid_request", error_description: "client_name is required" },
+      {
+        error: "invalid_request",
+        error_description: "client_name is required",
+      },
       { status: 400 }
     );
   }
-  
+
   // Generate client ID
   const clientId = randomBytes(16).toString("base64url");
-  
+
   // Register client
   const client = {
     clientId,
@@ -40,9 +50,9 @@ export async function POST(request: NextRequest) {
     name: client_name,
     scope: scope || "read:stuff",
   };
-  
+
   await storage.registerClient(client);
-  
+
   // Return client information
   return NextResponse.json({
     client_id: clientId,
