@@ -4,9 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "remix:dev": "TZ=UTC remix vite:dev",
-    "routes:dev": "remix-routes -w",
-    "dev": "run-p '*:dev'",
+    "dev": "remix vite:dev",
     "build": "remix vite:build",
     "start": "remix-serve ./build/server/index.js"
   },
@@ -22,7 +20,6 @@
     "redis": "^4.7.0",
     "remix-create-express-app": "0.4.5",
     "remix-express-dev-server": "0.4.4",
-    "remix-routes": "1.7.7",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -35,7 +32,7 @@
     "@types/react-dom": "18.3.5",
     "npm-run-all": "4.1.5",
     "typescript": "^5",
-    "vite": "6.0.6",
+    "vite": "5.4.14",
     "vite-env-only": "3.0.3",
     "vite-plugin-devtools-json": "0.1.0",
     "vite-tsconfig-paths": "5.1.4"

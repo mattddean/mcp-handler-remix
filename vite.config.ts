@@ -1,6 +1,5 @@
 import { vitePlugin as remix } from "@remix-run/dev";
 import { expressDevServer } from "remix-express-dev-server";
-import { remixRoutes } from "remix-routes/vite";
 import { defineConfig } from "vite";
 import { envOnlyMacros } from "vite-env-only";
 import devtoolsJson from "vite-plugin-devtools-json";
@@ -30,7 +29,6 @@ export default defineConfig({
       },
     }),
     tsconfigPaths(),
-    remixRoutes(),
   ],
 });
 
