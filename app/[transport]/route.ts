@@ -1,5 +1,8 @@
-import { createMcpHandler } from "@vercel/mcp-adapter";
+import { createMcpHandler, withMcpAuth } from "mcp-handler";
+import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { z } from "zod";
+import { storage } from "../oauth/lib/storage";
+import { parseAccessToken } from "../oauth/lib/jwt";
 
 const handler = createMcpHandler(
   async (server) => {
@@ -24,10 +27,60 @@ const handler = createMcpHandler(
     },
   },
   {
+    redisUrl: "redis://localhost:6380",
     basePath: "",
     verboseLogs: true,
     maxDuration: 60,
   }
 );
 
-export { handler as GET, handler as POST, handler as DELETE };
+// Wrap your handler with authorization
+const verifyToken = async (
+  req: Request,
+  bearerToken?: string
+): Promise<AuthInfo | undefined> => {
+  console.log("bearerToken", bearerToken);
+
+  if (!bearerToken) return undefined;
+
+  // Check if it's still using test token for backwards compatibility
+  if (bearerToken.startsWith("__TEST_VALUE__")) {
+    return {
+      token: bearerToken,
+      scopes: ["read:stuff"],
+      clientId: "test-client",
+      extra: {
+        userId: "test-user",
+      },
+    };
+  }
+
+  // Verify JWT token
+  const tokenData = await storage.getAccessToken(bearerToken);
+  if (!tokenData) return undefined;
+
+  // Parse JWT to get claims
+  const payload = parseAccessToken(bearerToken);
+  if (!payload) return undefined;
+
+  // Check token expiration
+  if (payload.exp * 1000 < Date.now()) return undefined;
+
+  return {
+    token: bearerToken,
+    scopes: tokenData.scope.split(" "),
+    clientId: tokenData.clientId,
+    extra: {
+      userId: tokenData.userId,
+    },
+  };
+};
+
+// Make authorization required
+const authHandler = withMcpAuth(handler, verifyToken, {
+  required: true, // Make auth required for all requests
+  requiredScopes: ["read:stuff"], // Optional: Require specific scopes
+  resourceMetadataPath: "/.well-known/oauth-protected-resource", // Optional: Custom metadata path
+});
+
+export { authHandler as GET, authHandler as POST, authHandler as DELETE };
