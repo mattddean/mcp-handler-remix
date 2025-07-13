@@ -39,20 +39,9 @@ const verifyToken = async (
   req: Request,
   bearerToken?: string
 ): Promise<AuthInfo | undefined> => {
-  console.log("bearerToken", bearerToken);
-
-  if (!bearerToken) return undefined;
-
-  // Check if it's still using test token for backwards compatibility
-  if (bearerToken.startsWith("__TEST_VALUE__")) {
-    return {
-      token: bearerToken,
-      scopes: ["read:stuff"],
-      clientId: "test-client",
-      extra: {
-        userId: "test-user",
-      },
-    };
+  if (!bearerToken) {
+    console.error("No bearer token provided");
+    return undefined;
   }
 
   // Verify JWT token
