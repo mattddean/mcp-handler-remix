@@ -3,7 +3,7 @@ import {
   metadataCorsOptionsRequestHandler,
 } from "mcp-handler";
 
-const authODomain = "claimvoyance-dev.us.auth0.com";
+// const authODomain = "claimvoyance-dev.us.auth0.com";
 
 const handler = protectedResourceHandler({
   // Specify the Issuer URL of the associated Authorization Server

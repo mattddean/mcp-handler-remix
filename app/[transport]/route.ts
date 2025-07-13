@@ -1,6 +1,8 @@
 import { createMcpHandler, withMcpAuth } from "mcp-handler";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import { z } from "zod";
+import { storage } from "../oauth/lib/storage";
+import { parseAccessToken } from "../oauth/lib/jwt";
 
 const handler = createMcpHandler(
   async (server) => {
@@ -41,20 +43,35 @@ const verifyToken = async (
 
   if (!bearerToken) return undefined;
 
-  // Replace this example with actual token verification logic
-  // Return an AuthInfo object if verification succeeds
-  // Otherwise, return undefined
-  const isValid = bearerToken.startsWith("__TEST_VALUE__");
+  // Check if it's still using test token for backwards compatibility
+  if (bearerToken.startsWith("__TEST_VALUE__")) {
+    return {
+      token: bearerToken,
+      scopes: ["read:stuff"],
+      clientId: "test-client",
+      extra: {
+        userId: "test-user",
+      },
+    };
+  }
 
-  if (!isValid) return undefined;
+  // Verify JWT token
+  const tokenData = await storage.getAccessToken(bearerToken);
+  if (!tokenData) return undefined;
+
+  // Parse JWT to get claims
+  const payload = parseAccessToken(bearerToken);
+  if (!payload) return undefined;
+
+  // Check token expiration
+  if (payload.exp * 1000 < Date.now()) return undefined;
 
   return {
     token: bearerToken,
-    scopes: ["read:stuff"], // Add relevant scopes
-    clientId: "user123", // Add user/client identifier
+    scopes: tokenData.scope.split(" "),
+    clientId: tokenData.clientId,
     extra: {
-      // Optional extra information
-      userId: "123",
+      userId: tokenData.userId,
     },
   };
 };
